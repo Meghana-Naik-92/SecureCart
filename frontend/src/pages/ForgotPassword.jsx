@@ -73,6 +73,13 @@ export default function ForgotPassword() {
             Sign in
           </Link>
         </p>
+
+        <p style={{ textAlign: 'center', marginTop: '10px', fontSize: '14px', color: 'var(--secondary)' }}>
+          Already have a token?{' '}
+          <Link to="/reset-password" style={{ color: 'var(--primary)', fontWeight: '600' }}>
+            Reset Password
+          </Link>
+        </p>
       </div>
     </div>
   );

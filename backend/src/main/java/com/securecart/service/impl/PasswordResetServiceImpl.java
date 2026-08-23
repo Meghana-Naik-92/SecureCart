@@ -41,44 +41,43 @@ public class PasswordResetServiceImpl implements PasswordResetService {
     @Override
     @Transactional
     public void forgotPassword(String email) {
-        // Silently ignore if email not found — security best practice
-        // Never reveal whether an email exists in the system
-        userRepository.findByEmail(email).ifPresent(user -> {
+        User user = userRepository.findByEmail(email)
+            .orElseThrow(() -> new BadRequestException("Email is not registered"));
 
-            // Delete any existing tokens for this user
-            tokenRepository.deleteByUserId(user.getId());
+        // Delete any existing tokens for this user
+        tokenRepository.deleteByUserId(user.getId());
 
-            // Generate secure random token
-            String token = UUID.randomUUID().toString();
+        // Generate secure random token
+        String token = UUID.randomUUID().toString();
 
-            // Set expiry to 30 minutes from now
-            LocalDateTime expiry = LocalDateTime.now().plusMinutes(30);
+        // Set expiry to 30 minutes from now
+        LocalDateTime expiry = LocalDateTime.now().plusMinutes(30);
 
-            // Save token
-            PasswordResetToken resetToken = new PasswordResetToken();
-            resetToken.setUser(user);
-            resetToken.setToken(token);
-            resetToken.setExpiryDate(expiry);
-            resetToken.setUsed(false);
-            tokenRepository.save(resetToken);
+        // Save token
+        PasswordResetToken resetToken = new PasswordResetToken();
+        resetToken.setUser(user);
+        resetToken.setToken(token);
+        resetToken.setExpiryDate(expiry);
+        resetToken.setUsed(false);
+        tokenRepository.save(resetToken);
 
-            // Send the email with the reset token
-            System.out.println("===========================================");
-            System.out.println("PASSWORD RESET TOKEN FOR: " + email);
-            System.out.println("TOKEN: " + token);
-            System.out.println("EXPIRES AT: " + expiry);
-            System.out.println("===========================================");
-            
-            SimpleMailMessage message = new SimpleMailMessage();
-            message.setFrom(fromEmail);
-            message.setTo(email);
-            message.setSubject("Password Reset Request");
-            message.setText("You have requested to reset your password.\n\n" +
-                    "Your reset token is: " + token + "\n\n" +
-                    "This token will expire in 30 minutes.");
-            
-            mailSender.send(message);
-        });
+        // Send the email with the reset token and reset link
+        System.out.println("===========================================");
+        System.out.println("PASSWORD RESET TOKEN FOR: " + email);
+        System.out.println("TOKEN: " + token);
+        System.out.println("EXPIRES AT: " + expiry);
+        System.out.println("===========================================");
+        
+        SimpleMailMessage message = new SimpleMailMessage();
+        message.setFrom(fromEmail);
+        message.setTo(email);
+        message.setSubject("Password Reset Request");
+        message.setText("You have requested to reset your password.\n\n" +
+                "Your reset token is: " + token + "\n\n" +
+                "You can reset your password here: http://localhost:5173/reset-password\n\n" +
+                "This token will expire in 30 minutes.");
+        
+        mailSender.send(message);
     }
 
     @Override
