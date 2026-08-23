@@ -3,6 +3,9 @@ package com.securecart.service.impl;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.mail.SimpleMailMessage;
+import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,13 +23,19 @@ public class PasswordResetServiceImpl implements PasswordResetService {
     private final UserRepository userRepository;
     private final PasswordResetTokenRepository tokenRepository;
     private final PasswordEncoder passwordEncoder;
+    private final JavaMailSender mailSender;
+
+    @Value("${spring.mail.username}")
+    private String fromEmail;
 
     public PasswordResetServiceImpl(UserRepository userRepository,
             PasswordResetTokenRepository tokenRepository,
-            PasswordEncoder passwordEncoder) {
+            PasswordEncoder passwordEncoder,
+            JavaMailSender mailSender) {
         this.userRepository = userRepository;
         this.tokenRepository = tokenRepository;
         this.passwordEncoder = passwordEncoder;
+        this.mailSender = mailSender;
     }
 
     @Override
@@ -53,13 +62,22 @@ public class PasswordResetServiceImpl implements PasswordResetService {
             resetToken.setUsed(false);
             tokenRepository.save(resetToken);
 
-            // In production this would be an email
-            // For dev we print to console
+            // Send the email with the reset token
             System.out.println("===========================================");
             System.out.println("PASSWORD RESET TOKEN FOR: " + email);
             System.out.println("TOKEN: " + token);
             System.out.println("EXPIRES AT: " + expiry);
             System.out.println("===========================================");
+            
+            SimpleMailMessage message = new SimpleMailMessage();
+            message.setFrom(fromEmail);
+            message.setTo(email);
+            message.setSubject("Password Reset Request");
+            message.setText("You have requested to reset your password.\n\n" +
+                    "Your reset token is: " + token + "\n\n" +
+                    "This token will expire in 30 minutes.");
+            
+            mailSender.send(message);
         });
     }
 
