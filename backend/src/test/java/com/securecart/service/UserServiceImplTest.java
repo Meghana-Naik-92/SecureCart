@@ -152,6 +152,9 @@ class UserServiceImplTest {
         when(userRepository.findByEmail(anyString()))
                 .thenReturn(Optional.of(testUser));
 
+        when(passwordEncoder.matches(anyString(), anyString()))
+                .thenReturn(true);
+
         when(jwtUtil.generateAccessToken(any(UserDetails.class), anyString()))
                 .thenReturn("access-token");
 
@@ -168,15 +171,18 @@ class UserServiceImplTest {
     }
 
     @Test
-    void loginUser_WrongPassword_ThrowsBadCredentialsException() {
+    void loginUser_WrongPassword_ThrowsBadRequestException() {
         // Arrange
-        when(authenticationManager.authenticate(any()))
-                .thenThrow(new BadCredentialsException("Bad credentials"));
+        when(userRepository.findByEmail(anyString()))
+                .thenReturn(Optional.of(testUser));
+        when(passwordEncoder.matches(anyString(), anyString()))
+                .thenReturn(false);
 
         // Act & Assert
-        assertThrows(
-                BadCredentialsException.class,
+        BadRequestException exception = assertThrows(
+                BadRequestException.class,
                 () -> userService.loginUser(loginRequest)
         );
+        assertEquals("Invalid password", exception.getMessage());
     }
 }

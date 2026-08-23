@@ -117,7 +117,7 @@ public class AuthIntegrationTest {
     }
 
     @Test
-    void login_WrongPassword_Returns401() throws Exception {
+    void login_WrongPassword_Returns400() throws Exception {
         // Register first
         RegisterRequest registerRequest = new RegisterRequest();
         registerRequest.setEmail("wrongpass@test.com");
@@ -138,8 +138,8 @@ public class AuthIntegrationTest {
         mockMvc.perform(post("/api/auth/login")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(loginRequest)))
-                .andExpect(status().isUnauthorized())
+                .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.message")
-                        .value("Invalid email or password"));
+                        .value("Invalid password"));
     }
 }
