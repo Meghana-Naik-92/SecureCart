@@ -71,6 +71,15 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public AuthResponse loginUser(LoginRequest request) {
+        // Fetch User entity first to check if email exists
+        User user = userRepository.findByEmail(request.getEmail())
+                .orElseThrow(() -> new BadRequestException("Invalid email"));
+
+        // Check if password matches
+        if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
+            throw new BadRequestException("Invalid password");
+        }
+
         // Authenticate the user
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword())
@@ -78,10 +87,6 @@ public class UserServiceImpl implements UserService {
 
         // Fetch UserDetails
         UserDetails userDetails = userDetailsService.loadUserByUsername(request.getEmail());
-
-        // Fetch User entity
-        User user = userRepository.findByEmail(request.getEmail())
-                .orElseThrow(() -> new BadRequestException("User not found"));
 
         // Generate tokens
         String accessToken = jwtUtil.generateAccessToken(userDetails, user.getRole().name());
