@@ -30,6 +30,12 @@ public class Product {
     @Column(name = "image_url")
     private String imageUrl;
 
+    @Column(nullable = false, precision = 5, scale = 2)
+    private BigDecimal discount = BigDecimal.ZERO;
+
+    @Column(nullable = false)
+    private Double rating = 0.0;
+
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
 
@@ -69,6 +75,12 @@ public class Product {
 
     public String getImageUrl() { return imageUrl; }
     public void setImageUrl(String imageUrl) { this.imageUrl = imageUrl; }
+
+    public BigDecimal getDiscount() { return discount; }
+    public void setDiscount(BigDecimal discount) { this.discount = discount; }
+
+    public Double getRating() { return rating; }
+    public void setRating(Double rating) { this.rating = rating; }
 
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }

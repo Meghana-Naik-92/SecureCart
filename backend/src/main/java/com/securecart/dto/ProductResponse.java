@@ -12,6 +12,8 @@ public class ProductResponse {
     private Integer stock;
     private String category;
     private String imageUrl;
+    private BigDecimal discount;
+    private Double rating;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
@@ -20,6 +22,7 @@ public class ProductResponse {
 
     public ProductResponse(Long id, String name, String description, BigDecimal price,
             Integer stock, String category, String imageUrl,
+            BigDecimal discount, Double rating,
             LocalDateTime createdAt, LocalDateTime updatedAt) {
         this.id = id;
         this.name = name;
@@ -28,6 +31,8 @@ public class ProductResponse {
         this.stock = stock;
         this.category = category;
         this.imageUrl = imageUrl;
+        this.discount = discount;
+        this.rating = rating;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
     }
@@ -86,6 +91,22 @@ public class ProductResponse {
 
     public void setImageUrl(String imageUrl) {
         this.imageUrl = imageUrl;
+    }
+
+    public BigDecimal getDiscount() {
+        return discount;
+    }
+
+    public void setDiscount(BigDecimal discount) {
+        this.discount = discount;
+    }
+
+    public Double getRating() {
+        return rating;
+    }
+
+    public void setRating(Double rating) {
+        this.rating = rating;
     }
 
     public LocalDateTime getCreatedAt() {

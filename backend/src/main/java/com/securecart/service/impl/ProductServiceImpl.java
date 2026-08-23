@@ -93,6 +93,8 @@ public class ProductServiceImpl implements ProductService {
                 product.getStock(),
                 product.getCategory(),
                 product.getImageUrl(),
+                product.getDiscount(),
+                product.getRating(),
                 product.getCreatedAt(),
                 product.getUpdatedAt()
         );

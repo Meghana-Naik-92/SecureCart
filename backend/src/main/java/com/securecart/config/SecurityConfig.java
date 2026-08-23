@@ -1,7 +1,10 @@
 package com.securecart.config;
 
+import java.util.List;
+
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -9,6 +12,9 @@ import org.springframework.security.config.annotation.web.configurers.AbstractHt
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import com.securecart.security.JwtAuthFilter;
 
@@ -25,35 +31,68 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+
         http
-                // Disable CSRF as we will be using JWT (stateless)
+                // Enable CORS
+                .cors(cors -> {
+                })
+                // Disable CSRF for JWT authentication
                 .csrf(AbstractHttpConfigurer::disable)
-                // Configure route access rules
+                // Stateless session
+                .sessionManagement(session
+                        -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                // Authorization rules
                 .authorizeHttpRequests(auth -> auth
+                // Authentication APIs
                 .requestMatchers("/api/auth/**").permitAll()
+                // Swagger/OpenAPI
                 .requestMatchers(
                         "/swagger-ui/**",
                         "/swagger-ui.html",
-                        "/api-docs/**",
-                        "/api-docs.yaml",
                         "/v3/api-docs/**",
                         "/v3/api-docs",
                         "/swagger-resources/**",
                         "/webjars/**"
                 ).permitAll()
-                .requestMatchers(org.springframework.http.HttpMethod.GET,
-                        "/api/products/**").permitAll()
+                // Public product APIs
+                .requestMatchers(HttpMethod.GET, "/api/products/**").permitAll()
+                // Protected APIs
                 .requestMatchers("/api/cart/**").authenticated()
                 .requestMatchers("/api/orders/**").authenticated()
+                // Everything else
                 .anyRequest().authenticated()
                 )
-                // Set session management to stateless
-                .sessionManagement(session -> session
-                .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-                )
-                // Add JWT filter
-                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
+                // JWT Filter
+                .addFilterBefore(jwtAuthFilter,
+                        UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
+    }
+
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+
+        CorsConfiguration configuration = new CorsConfiguration();
+
+        configuration.setAllowedOrigins(
+                List.of("http://localhost:5173")
+        );
+
+        configuration.setAllowedMethods(
+                List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS")
+        );
+
+        configuration.setAllowedHeaders(
+                List.of("*")
+        );
+
+        configuration.setAllowCredentials(true);
+
+        UrlBasedCorsConfigurationSource source
+                = new UrlBasedCorsConfigurationSource();
+
+        source.registerCorsConfiguration("/**", configuration);
+
+        return source;
     }
 }

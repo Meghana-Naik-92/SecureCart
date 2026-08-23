@@ -1,5 +1,32 @@
 package com.securecart.service;
 
+import java.time.LocalDateTime;
+import java.util.Optional;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.argThat;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.crypto.password.PasswordEncoder;
+
 import com.securecart.dto.AuthResponse;
 import com.securecart.dto.LoginRequest;
 import com.securecart.dto.RegisterRequest;
@@ -10,26 +37,6 @@ import com.securecart.exception.BadRequestException;
 import com.securecart.repository.UserRepository;
 import com.securecart.security.JwtUtil;
 import com.securecart.service.impl.UserServiceImpl;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.crypto.password.PasswordEncoder;
-
-import java.time.LocalDateTime;
-import java.util.Optional;
-
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class UserServiceImplTest {
@@ -61,6 +68,8 @@ class UserServiceImplTest {
         testUser = new User();
         testUser.setId(1L);
         testUser.setEmail("test@example.com");
+        testUser.setName("Test User");
+        testUser.setGender("Male");
         testUser.setPassword("hashedpassword");
         testUser.setRole(Role.USER);
         testUser.setCreatedAt(LocalDateTime.now());
@@ -68,6 +77,8 @@ class UserServiceImplTest {
 
         registerRequest = new RegisterRequest();
         registerRequest.setEmail("test@example.com");
+        registerRequest.setName("Test User");
+        registerRequest.setGender("Male");
         registerRequest.setPassword("password123");
 
         loginRequest = new LoginRequest();
@@ -89,6 +100,8 @@ class UserServiceImplTest {
         // Assert
         assertNotNull(response);
         assertEquals("test@example.com", response.getEmail());
+        assertEquals("Test User", response.getName());
+        assertEquals("Male", response.getGender());
         assertEquals(Role.USER, response.getRole());
         verify(passwordEncoder, times(1)).encode("password123");
         verify(userRepository, times(1)).save(any(User.class));
@@ -135,8 +148,15 @@ class UserServiceImplTest {
         );
         when(userDetailsService.loadUserByUsername(anyString()))
                 .thenReturn(mockUserDetails);
-        when(jwtUtil.generateAccessToken(any())).thenReturn("access-token");
-        when(jwtUtil.generateRefreshToken(any())).thenReturn("refresh-token");
+
+        when(userRepository.findByEmail(anyString()))
+                .thenReturn(Optional.of(testUser));
+
+        when(jwtUtil.generateAccessToken(any(UserDetails.class), anyString()))
+                .thenReturn("access-token");
+
+        when(jwtUtil.generateRefreshToken(any()))
+                .thenReturn("refresh-token");
 
         // Act
         AuthResponse response = userService.loginUser(loginRequest);

@@ -152,6 +152,7 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<OrderResponse> getUserOrders(String email) {
         User user = getUserByEmail(email);
         return orderRepository.findByUserIdOrderByCreatedAtDesc(user.getId())
@@ -161,6 +162,7 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<OrderResponse> getAllOrders() {
         return orderRepository.findAllWithUser()
                 .stream()
@@ -169,6 +171,7 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public OrderResponse getOrderById(String email, Long orderId) {
         User user = getUserByEmail(email);
         Order order = orderRepository.findById(orderId)

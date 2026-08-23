@@ -52,6 +52,8 @@ public class CartOrderIntegrationTest {
         // Create test user
         User user = new User();
         user.setEmail("carttest@test.com");
+        user.setName("Cart Test");
+        user.setGender("Other");
         user.setPassword(passwordEncoder.encode("password123"));
         user.setRole(Role.USER);
         userRepository.save(user);
@@ -134,24 +136,24 @@ public class CartOrderIntegrationTest {
     }
 
     @Test
-    void checkout_EmptyCart_Returns400() throws Exception {
-        // First visit cart to create it
-        mockMvc.perform(get("/api/cart")
-                .header("Authorization", "Bearer " + accessToken))
-                .andExpect(status().isOk());
+void checkout_EmptyCart_Returns400() throws Exception {
+    // First visit cart to create it
+    mockMvc.perform(get("/api/cart")
+            .header("Authorization", "Bearer " + accessToken))
+            .andExpect(status().isOk());
 
-        // Now try to checkout with empty cart
-        CheckoutRequest checkoutRequest = new CheckoutRequest();
-        checkoutRequest.setShippingAddress("123 Test Street");
+    // Now try to checkout with empty cart
+    CheckoutRequest checkoutRequest = new CheckoutRequest();
+    checkoutRequest.setShippingAddress("123 Test Street");
 
-        mockMvc.perform(post("/api/orders/checkout")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(checkoutRequest))
-                .header("Authorization", "Bearer " + accessToken))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.message")
-                        .value("Cannot checkout with an empty cart"));
-    }
+    mockMvc.perform(post("/api/orders/checkout")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(objectMapper.writeValueAsString(checkoutRequest))
+            .header("Authorization", "Bearer " + accessToken))
+            .andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.message")
+                    .value("Cannot checkout with an empty cart"));
+}
 
     @Test
     void getCart_WithoutToken_Returns403() throws Exception {

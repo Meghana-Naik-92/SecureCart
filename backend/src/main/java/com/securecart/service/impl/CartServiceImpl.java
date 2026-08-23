@@ -71,6 +71,7 @@ public class CartServiceImpl implements CartService {
     }
 
     @Override
+    @Transactional
     public CartResponse getCart(String email) {
         User user = getUserByEmail(email);
         Cart cart = getOrCreateCart(user);

@@ -35,12 +35,16 @@ public class AuthIntegrationTest {
         RegisterRequest registerRequest = new RegisterRequest();
         registerRequest.setEmail("integration@test.com");
         registerRequest.setPassword("password123");
+        registerRequest.setName("Integration User");
+        registerRequest.setGender("Female");
 
         mockMvc.perform(post("/api/auth/register")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(registerRequest)))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.email").value("integration@test.com"))
+                .andExpect(jsonPath("$.name").value("Integration User"))
+                .andExpect(jsonPath("$.gender").value("Female"))
                 .andExpect(jsonPath("$.role").value("USER"))
                 .andExpect(jsonPath("$.id").exists());
 
@@ -64,6 +68,8 @@ public class AuthIntegrationTest {
         RegisterRequest registerRequest = new RegisterRequest();
         registerRequest.setEmail("duplicate@test.com");
         registerRequest.setPassword("password123");
+        registerRequest.setName("Dup");
+        registerRequest.setGender("Other");
 
         // First registration
         mockMvc.perform(post("/api/auth/register")
@@ -85,6 +91,8 @@ public class AuthIntegrationTest {
         RegisterRequest registerRequest = new RegisterRequest();
         registerRequest.setEmail("notanemail");
         registerRequest.setPassword("password123");
+        registerRequest.setName("Invalid");
+        registerRequest.setGender("Other");
 
         mockMvc.perform(post("/api/auth/register")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -98,6 +106,8 @@ public class AuthIntegrationTest {
         RegisterRequest registerRequest = new RegisterRequest();
         registerRequest.setEmail("valid@test.com");
         registerRequest.setPassword("123");
+        registerRequest.setName("Short");
+        registerRequest.setGender("Other");
 
         mockMvc.perform(post("/api/auth/register")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -112,6 +122,8 @@ public class AuthIntegrationTest {
         RegisterRequest registerRequest = new RegisterRequest();
         registerRequest.setEmail("wrongpass@test.com");
         registerRequest.setPassword("password123");
+        registerRequest.setName("Wrong");
+        registerRequest.setGender("Other");
 
         mockMvc.perform(post("/api/auth/register")
                 .contentType(MediaType.APPLICATION_JSON)
