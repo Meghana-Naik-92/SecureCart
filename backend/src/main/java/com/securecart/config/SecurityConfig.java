@@ -31,21 +31,16 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-
         http
-                // Enable CORS
-                .cors(cors -> {
-                })
+                // FIX: Explicitly tell Spring Security to use your corsConfigurationSource bean
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 // Disable CSRF for JWT authentication
                 .csrf(AbstractHttpConfigurer::disable)
                 // Stateless session
-                .sessionManagement(session
-                        -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 // Authorization rules
                 .authorizeHttpRequests(auth -> auth
-                // Authentication APIs
                 .requestMatchers("/api/auth/**").permitAll()
-                // Swagger/OpenAPI
                 .requestMatchers(
                         "/swagger-ui/**",
                         "/swagger-ui.html",
@@ -54,28 +49,28 @@ public class SecurityConfig {
                         "/swagger-resources/**",
                         "/webjars/**"
                 ).permitAll()
-                // Public product APIs
                 .requestMatchers(HttpMethod.GET, "/api/products/**").permitAll()
-                // Protected APIs
                 .requestMatchers("/api/cart/**").authenticated()
                 .requestMatchers("/api/orders/**").authenticated()
-                // Everything else
                 .anyRequest().authenticated()
                 )
                 // JWT Filter
-                .addFilterBefore(jwtAuthFilter,
-                        UsernamePasswordAuthenticationFilter.class);
+                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
 
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
-
         CorsConfiguration configuration = new CorsConfiguration();
 
+        // FIX: Added your exact live Vercel frontend URL here
         configuration.setAllowedOrigins(
-                List.of("http://localhost:5173", "https://your-live-frontend-url.com")
+                List.of(
+                        "http://localhost:5173",
+                        "http://localhost:3000",
+                        "https://secure-cart-puce.vercel.app"
+                )
         );
 
         configuration.setAllowedMethods(
@@ -88,9 +83,7 @@ public class SecurityConfig {
 
         configuration.setAllowCredentials(true);
 
-        UrlBasedCorsConfigurationSource source
-                = new UrlBasedCorsConfigurationSource();
-
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
 
         return source;
